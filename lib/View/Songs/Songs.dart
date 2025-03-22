@@ -1,7 +1,7 @@
 import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvider.dart';
 import 'package:audioplayer/Utils/Provider/PermissionProvider/permissionprovider.dart';
 import 'package:audioplayer/Utils/Provider/SongProvider/SongProvider.dart';
-import 'package:audioplayer/Utils/Widgets/Nostorage.dart';
+import 'package:audioplayer/Utils/Widgets/NoStorageWidget/Nostorage.dart';
 import 'package:audioplayer/Utils/Widgets/Player Widgets/MiniPlayerWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
