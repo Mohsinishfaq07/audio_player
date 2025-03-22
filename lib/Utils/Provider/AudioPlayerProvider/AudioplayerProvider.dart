@@ -13,7 +13,6 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
   final AudioPlayer _player = AudioPlayer();
 
   AudioPlayerNotifier() : super(AudioPlayerState()) {
-    // When using the full playlist (shuffle mode), update current index.
     _player.currentIndexStream.listen((index) {
       if (index != null &&
           state.shuffleModeEnabled &&
@@ -32,7 +31,6 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
       }
     });
     _player.playerStateStream.listen((playerState) {
-      // When a song completes in single-song mode, pause playback.
       if (playerState.processingState == ProcessingState.completed &&
           !state.shuffleModeEnabled) {
         _player.pause();
@@ -42,7 +40,6 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
 
   AudioPlayer get player => _player;
 
-  /// Loads a single song (non-shuffle mode).
   Future<void> loadSong(List<SongModel> songs, int currentIndex) async {
     try {
       final song = songs[currentIndex];
@@ -55,7 +52,6 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
       await _player.setAudioSource(
         AudioSource.uri(Uri.parse(song.uri!), tag: mediaItem),
       );
-      // Disable built‐in shuffle.
       await _player.setShuffleModeEnabled(false);
       _player.play();
       state = state.copyWith(
@@ -69,14 +65,7 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
     }
   }
 
-  /// Loads the full playlist and enables shuffle mode.
   Future<void> loadPlaylist(List<SongModel> songs, int initialIndex) async {
-    // if (songs.isEmpty) {
-    //   print("Cannot load playlist: songs list is empty");
-    //   return;
-    // }
-    // Clamp the initialIndex just in case
-
     try {
       final playlist = ConcatenatingAudioSource(
         children:
@@ -96,12 +85,6 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
       state = state.copyWith(
         songs: songs,
         currentIndex: initialIndex,
-        // mediaItem: MediaItem(
-        //   id: songs[initialIndex].uri!,
-        //   album: songs[initialIndex].album ?? '',
-        //   title: songs[initialIndex].title,
-        //   artUri: Uri.parse(songs[initialIndex].uri!),
-        // ),
         shuffleModeEnabled: true,
       );
     } on PlayerException catch (e) {
@@ -124,28 +107,20 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
     }
   }
 
-  /// Next/Previous navigation in non-shuffle mode.
   Future<void> playNext() async {
     if (!state.shuffleModeEnabled) {
-      // If current song is not the last one, play the next song,
-      // otherwise jump back to the first song.
       int nextIndex =
           (state.currentIndex < state.songs.length - 1)
               ? state.currentIndex + 1
               : 0;
       await loadSong(state.songs, nextIndex);
-    }
-    // In shuffle mode, just use built-in navigation:
-    else {
+    } else {
       await _player.seekToNext();
     }
   }
 
-  /// Previous navigation in non-shuffle mode.
   Future<void> playPrevious() async {
     if (!state.shuffleModeEnabled) {
-      // If current song is not the first one, play previous song,
-      // otherwise jump to the last song.
       int prevIndex =
           (state.currentIndex > 0)
               ? state.currentIndex - 1

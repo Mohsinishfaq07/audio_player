@@ -35,7 +35,6 @@ class _SongsState extends ConsumerState<Songs> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // When the app resumes—from minimized for example—update the song list.
       ref.read(songProvider.notifier).fetchSongs();
     }
   }

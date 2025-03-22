@@ -16,7 +16,6 @@ class PermissionNotifier extends StateNotifier<bool> {
       if (status.isGranted) {
         state = true;
       } else if (status.isDenied && retry) {
-        // Retry requesting permission
         status = await Permission.storage.request();
         state = status.isGranted;
       } else {
@@ -24,7 +23,6 @@ class PermissionNotifier extends StateNotifier<bool> {
       }
     } catch (e) {
       state = false;
-      // Handle the error appropriately, e.g., log it or show a message to the user
       print('Error requesting permissions: $e');
     }
   }

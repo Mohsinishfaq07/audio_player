@@ -85,11 +85,14 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Text(
-                audioPlayerState.mediaItem!.album ?? '',
-                style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Padding(
+                padding: const EdgeInsets.only(left: 20, right: 20),
+                child: Text(
+                  audioPlayerState.mediaItem!.album ?? '',
+                  style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               Gap(30),
             ],

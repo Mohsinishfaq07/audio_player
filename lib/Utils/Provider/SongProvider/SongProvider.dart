@@ -22,7 +22,6 @@ class SongNotifier extends StateNotifier<List<SongModel>> {
       );
       state = songs;
     } catch (e) {
-      // Handle the error appropriately, e.g., log it or show a message to the user
       print('Error fetching songs: $e');
     }
   }
