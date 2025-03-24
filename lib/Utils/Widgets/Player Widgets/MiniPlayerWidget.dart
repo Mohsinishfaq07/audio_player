@@ -17,8 +17,8 @@ class MiniPlayer extends ConsumerWidget {
     final audioPlayerState = ref.watch(audioPlayerProvider);
     final currentSong = audioPlayerState.mediaItem;
 
-    if (currentSong == null) {
-      return SizedBox.shrink();
+    if (currentSong == null || audioPlayerState.songs.isEmpty) {
+      return const SizedBox.shrink();
     }
 
     return GestureDetector(
@@ -36,18 +36,26 @@ class MiniPlayer extends ConsumerWidget {
       },
       child: Container(
         width: Get.width * 1,
-        height: Get.height * 0.1, // Set a fixed height for the MiniPlayer
+        height: Get.height * 0.1,
         color: Colors.grey[850],
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16.0,
-        ), // Add horizontal padding
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
           children: [
-            QueryArtworkWidget(
-              nullArtworkWidget: Icon(Icons.music_note, color: Colors.white),
-              controller: OnAudioQuery(),
-              id: audioPlayerState.songs[audioPlayerState.currentIndex].id,
-              type: ArtworkType.AUDIO,
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: QueryArtworkWidget(
+                nullArtworkWidget: const Icon(
+                  Icons.music_note,
+                  color: Colors.white,
+                ),
+                controller: OnAudioQuery(),
+                id:
+                    int.tryParse(currentSong.id) ??
+                    audioPlayerState.songs[audioPlayerState.currentIndex].id,
+                type: ArtworkType.AUDIO,
+                keepOldArtwork: true,
+              ),
             ),
             const SizedBox(width: 8.0),
             Expanded(
@@ -57,12 +65,15 @@ class MiniPlayer extends ConsumerWidget {
                 children: [
                   Text(
                     currentSong.title,
-                    style: TextStyle(color: Colors.white, fontSize: 16.0),
+                    style: const TextStyle(color: Colors.white, fontSize: 16.0),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    currentSong.album ?? '',
-                    style: TextStyle(color: Colors.white, fontSize: 12.0),
+                    currentSong.artist ?? '',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12.0,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],

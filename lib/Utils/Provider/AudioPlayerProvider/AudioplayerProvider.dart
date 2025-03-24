@@ -92,42 +92,163 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
     }
   }
 
-  Future<void> toggleShuffle() async {
-    if (!state.shuffleModeEnabled) {
-      showsnackbar("Shuffle", "Shuffle On");
-      if (_player.loopMode != LoopMode.off) {
-        await _player.setLoopMode(LoopMode.off);
-        state = state.copyWith(loopMode: LoopMode.off);
-      }
+  Future<void> playPlaylistSongs(
+    List<SongModel> songs,
+    int initialIndex,
+  ) async {
+    try {
+      print(
+        'Setting up playlist with ${songs.length} songs at index $initialIndex',
+      );
+
+      // Create playlist with proper data path handling
+      final playlist = ConcatenatingAudioSource(
+        children:
+            songs.map((song) {
+              print('Processing song: ${song.title}');
+              print('File path: ${song.data}');
+
+              final mediaItem = MediaItem(
+                id: song.id.toString(),
+                album: song.album ?? 'Unknown Album',
+                title: song.title,
+                artist: song.artist ?? 'Unknown Artist',
+              );
+
+              // Use file path directly instead of URI
+              return AudioSource.uri(Uri.file(song.data), tag: mediaItem);
+            }).toList(),
+      );
+
+      // Stop current playback if any
       await _player.stop();
-      await loadPlaylist(state.songs, state.currentIndex);
-    } else {
-      state = state.copyWith(shuffleModeEnabled: false);
-      showsnackbar("Shuffle", "Shuffle Off");
+
+      // Set up index change listener before setting audio source
+      _player.currentIndexStream.listen((index) {
+        if (index != null && index < songs.length) {
+          final currentSong = songs[index];
+          print(
+            'Index changed to: $index, updating to song: ${currentSong.title}',
+          );
+
+          state = state.copyWith(
+            currentIndex: index,
+            mediaItem: MediaItem(
+              id: currentSong.id.toString(),
+              album: currentSong.album ?? 'Unknown Album',
+              title: currentSong.title,
+              artist: currentSong.artist ?? 'Unknown Artist',
+            ),
+          );
+        }
+      });
+
+      // Set up the audio source
+      await _player.setAudioSource(playlist, initialIndex: initialIndex);
+
+      // Update initial state
+      state = state.copyWith(
+        songs: songs,
+        currentIndex: initialIndex,
+        mediaItem: MediaItem(
+          id: songs[initialIndex].id.toString(),
+          album: songs[initialIndex].album ?? 'Unknown Album',
+          title: songs[initialIndex].title,
+          artist: songs[initialIndex].artist ?? 'Unknown Artist',
+        ),
+      );
+
+      // Start playback
+      await _player.play();
+    } catch (e, stackTrace) {
+      print('Error in playPlaylistSongs:');
+      print('Error: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  Future<void> toggleShuffle() async {
+    try {
+      final isPlaylist = _player.audioSource is ConcatenatingAudioSource;
+      final newShuffleMode = !state.shuffleModeEnabled;
+
+      if (isPlaylist) {
+        // We're in playlist mode
+        print('Toggling shuffle for playlist');
+
+        await _player.setShuffleModeEnabled(newShuffleMode);
+
+        if (newShuffleMode) {
+          showsnackbar("Shuffle", "Playlist Shuffle On");
+        } else {
+          showsnackbar("Shuffle", "Playlist Shuffle Off");
+        }
+
+        state = state.copyWith(shuffleModeEnabled: newShuffleMode);
+      } else {
+        // Regular shuffle mode for all songs
+        if (newShuffleMode) {
+          showsnackbar("Shuffle", "Shuffle On");
+          if (_player.loopMode != LoopMode.off) {
+            await _player.setLoopMode(LoopMode.off);
+            state = state.copyWith(loopMode: LoopMode.off);
+          }
+          await _player.stop();
+          await loadPlaylist(state.songs, state.currentIndex);
+        } else {
+          state = state.copyWith(shuffleModeEnabled: false);
+          showsnackbar("Shuffle", "Shuffle Off");
+        }
+      }
+    } catch (e) {
+      print('Error toggling shuffle: $e');
     }
   }
 
   Future<void> playNext() async {
-    if (!state.shuffleModeEnabled) {
-      int nextIndex =
-          (state.currentIndex < state.songs.length - 1)
-              ? state.currentIndex + 1
-              : 0;
-      await loadSong(state.songs, nextIndex);
-    } else {
-      await _player.seekToNext();
+    try {
+      if (_player.audioSource is ConcatenatingAudioSource) {
+        // We're playing from a playlist
+        print('Playing next in playlist');
+        await _player.seekToNext();
+      } else {
+        // Regular playback
+        if (!state.shuffleModeEnabled) {
+          int nextIndex =
+              (state.currentIndex < state.songs.length - 1)
+                  ? state.currentIndex + 1
+                  : 0;
+          await loadSong(state.songs, nextIndex);
+        } else {
+          await _player.seekToNext();
+        }
+      }
+    } catch (e) {
+      print('Error playing next song: $e');
     }
   }
 
   Future<void> playPrevious() async {
-    if (!state.shuffleModeEnabled) {
-      int prevIndex =
-          (state.currentIndex > 0)
-              ? state.currentIndex - 1
-              : state.songs.length - 1;
-      await loadSong(state.songs, prevIndex);
-    } else {
-      await _player.seekToPrevious();
+    try {
+      if (_player.audioSource is ConcatenatingAudioSource) {
+        // We're playing from a playlist
+        print('Playing previous in playlist');
+        await _player.seekToPrevious();
+      } else {
+        // Regular playback
+        if (!state.shuffleModeEnabled) {
+          int prevIndex =
+              (state.currentIndex > 0)
+                  ? state.currentIndex - 1
+                  : state.songs.length - 1;
+          await loadSong(state.songs, prevIndex);
+        } else {
+          await _player.seekToPrevious();
+        }
+      }
+    } catch (e) {
+      print('Error playing previous song: $e');
     }
   }
 
