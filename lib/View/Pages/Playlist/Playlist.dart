@@ -30,21 +30,12 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen>
     super.build(context);
     final playlists = ref.watch(playlistProvider);
 
-    if (playlists.isEmpty) {
-      return const Center(
-        child: Text(
-          "No Playlists",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        ),
-      );
-    }
-
     return ListView.builder(
       itemCount: playlists.length,
       itemBuilder: (context, index) {
         final playlist = playlists[index];
         return Dismissible(
-          key: Key(playlist.id.toString()),
+          key: ValueKey(playlist.id),
           direction: DismissDirection.endToStart,
           background: Container(
             color: Colors.red,
@@ -52,33 +43,55 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen>
             padding: const EdgeInsets.only(right: 16.0),
             child: const Icon(Icons.delete, color: Colors.white),
           ),
-          onDismissed: (_) {
-            ref.read(playlistProvider.notifier).deletePlaylist(playlist.id);
-          },
           confirmDismiss: (_) async {
-            return await showDialog(
-              context: context,
-              builder:
-                  (context) => AlertDialog(
-                    title: const Text('Delete Playlist'),
-                    content: Text(
-                      'Are you sure you want to delete "${playlist.playlist}"?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
+            return await showDialog<bool>(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Delete Playlist'),
+                        content: Text(
+                          'Are you sure you want to delete "${playlist.playlist}"?',
                         ),
-                        child: const Text('Delete'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                            child: const Text('Delete'),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-            );
+                ) ??
+                false;
+          },
+          onDismissed: (direction) async {
+            final success = await ref
+                .read(playlistProvider.notifier)
+                .deletePlaylist(playlist.id);
+
+            if (success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${playlist.playlist} deleted'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            } else {
+              // If deletion failed, show error and refresh the list
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Failed to delete playlist'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              // Refresh playlists
+              ref.read(playlistProvider.notifier).loadPlaylists();
+            }
           },
           child: ListTile(
             leading: Container(
@@ -110,40 +123,13 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen>
                 );
               },
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FutureBuilder<List<SongModel>>(
-                  future: ref
-                      .read(playlistProvider.notifier)
-                      .getPlaylistSongs(playlist.id),
-                  builder: (context, snapshot) {
-                    final songCount = snapshot.data?.length ?? 0;
-                    return Text(
-                      '$songCount',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    );
-                  },
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OpenPlaylist(playlist: playlist),
+                  ),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: () {
-                    ref
-                        .read(playlistProvider.notifier)
-                        .deletePlaylist(playlist.id);
-                  },
-                  icon: Icon(Icons.delete),
-                ),
-              ],
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OpenPlaylist(playlist: playlist),
-                ),
-              );
-            },
           ),
         );
       },

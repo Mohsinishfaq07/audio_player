@@ -8,41 +8,62 @@ class SeekBar extends StatelessWidget {
   final ValueChanged<Duration>? onChangeEnd;
 
   const SeekBar({
-    Key? key,
+    super.key,
     required this.duration,
     required this.position,
     required this.bufferedPosition,
     this.onChanged,
     this.onChangeEnd,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        Slider(
-          min: 0.0,
-          max: duration.inMilliseconds.toDouble(),
-          value: position.inMilliseconds.toDouble().clamp(
-            0.0,
-            duration.inMilliseconds.toDouble(),
-          ),
-          onChanged: (value) {
-            if (onChanged != null) {
-              onChanged!(Duration(milliseconds: value.round()));
-            }
-          },
-          onChangeEnd: (value) {
-            if (onChangeEnd != null) {
-              onChangeEnd!(Duration(milliseconds: value.round()));
-            }
-          },
-        ),
+        // Left time text
         Text(
-          '${position.toString().split('.').first} / ${duration.toString().split('.').first}',
-          style: TextStyle(fontSize: 12.0),
+          _formatDuration(position),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        ),
+        // Expanded slider
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Slider(
+              activeColor: Colors.orange,
+              inactiveColor: Colors.white24,
+              min: 0.0,
+              max: duration.inMilliseconds.toDouble(),
+              value: position.inMilliseconds.toDouble().clamp(
+                0.0,
+                duration.inMilliseconds.toDouble(),
+              ),
+              onChanged: (value) {
+                if (onChanged != null) {
+                  onChanged!(Duration(milliseconds: value.round()));
+                }
+              },
+              onChangeEnd: (value) {
+                if (onChangeEnd != null) {
+                  onChangeEnd!(Duration(milliseconds: value.round()));
+                }
+              },
+            ),
+          ),
+        ),
+        // Right time text
+        Text(
+          _formatDuration(duration),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
       ],
     );
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$twoDigitMinutes:$twoDigitSeconds";
   }
 }

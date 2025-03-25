@@ -51,57 +51,94 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Audio Player"),
-        elevation: 2,
+        automaticallyImplyLeading: false,
+        title: const Text("Now Playing"),
+        elevation: 0, // Remove elevation to blend with background
         centerTitle: true,
-        backgroundColor: Colors.blue,
-        titleTextStyle: TextStyle(
+        backgroundColor: Colors.transparent, // Make AppBar transparent
+        titleTextStyle: const TextStyle(
           color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Gap(20),
-            QueryArtworkWidget(
-              artworkHeight: 200,
-              artworkWidth: 300,
-              nullArtworkWidget: Icon(Icons.music_note, size: 100),
-              controller: OnAudioQuery(),
-              id: audioPlayerState.songs[audioPlayerState.currentIndex].id,
-              type: ArtworkType.AUDIO,
-            ),
-            Gap(30),
-            if (audioPlayerState.mediaItem != null) ...[
-              Padding(
-                padding: const EdgeInsets.only(left: 20, right: 20),
-                child: Text(
-                  audioPlayerState.mediaItem!.title,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 20, right: 20),
-                child: Text(
-                  audioPlayerState.mediaItem!.album ?? '',
-                  style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Gap(30),
+      extendBodyBehindAppBar: true, // Let the background extend behind AppBar
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.blue.shade900,
+              Colors.blue.shade800,
+              Colors.blue.shade500,
+              Colors.blue.shade300,
             ],
-            ControlButtons(
-              player,
-              ref.read(audioPlayerProvider.notifier).playPrevious,
-              ref.read(audioPlayerProvider.notifier).playNext,
-            ),
-          ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Gap(20),
+              Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.blue.shade400,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 15,
+                      spreadRadius: 5,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Icon(Icons.music_note, size: 100, color: Colors.white),
+                ),
+              ),
+              const Gap(30),
+              if (audioPlayerState.mediaItem != null) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    audioPlayerState.mediaItem!.title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // Make text white
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    audioPlayerState.mediaItem!.album ?? '',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontStyle: FontStyle.italic,
+                      color:
+                          Colors
+                              .white70, // Make album text slightly transparent
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Gap(30),
+              ],
+              ControlButtons(
+                player,
+                ref.read(audioPlayerProvider.notifier).playPrevious,
+                ref.read(audioPlayerProvider.notifier).playNext,
+              ),
+            ],
+          ),
         ),
       ),
     );

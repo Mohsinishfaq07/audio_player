@@ -1,56 +1,77 @@
-import 'dart:io';
-
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-final permissionProvider = StateNotifierProvider<PermissionNotifier, bool>((
-  ref,
-) {
-  return PermissionNotifier();
-});
+class PermissionState {
+  final bool hasPermission;
+  final bool isLoading;
 
-class PermissionNotifier extends StateNotifier<bool> {
-  PermissionNotifier() : super(false);
+  const PermissionState({required this.hasPermission, required this.isLoading});
+}
 
-  Future<void> checkAndRequestPermissions({bool retry = false}) async {
+final permissionProvider =
+    StateNotifierProvider<PermissionNotifier, PermissionState>((ref) {
+      return PermissionNotifier();
+    });
+
+class PermissionNotifier extends StateNotifier<PermissionState> {
+  final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
+
+  PermissionNotifier()
+    : super(const PermissionState(hasPermission: false, isLoading: true));
+
+  Future<void> checkAndRequestPermissions() async {
     try {
-      if (Platform.isAndroid) {
-        if (await isAndroid13OrHigher()) {
-          final audio = await Permission.audio.request();
-          if (audio.isGranted) {
-            state = true;
-          } else if (audio.isDenied && retry) {
-            final retryStatus = await Permission.audio.request();
-            state = retryStatus.isGranted;
-          } else {
-            state = false;
-          }
+      final androidInfo = await _deviceInfo.androidInfo;
+      final sdkVersion = androidInfo.version.sdkInt;
+
+      if (sdkVersion >= 33) {
+        // Android 13+ only needs audio permission
+        final audioStatus = await Permission.audio.status;
+        if (audioStatus.isDenied) {
+          final result = await Permission.audio.request();
+          state = PermissionState(
+            hasPermission: result.isGranted,
+            isLoading: false,
+          );
         } else {
-          final storage = await Permission.storage.request();
-          if (storage.isGranted) {
-            state = true;
-          } else if (storage.isDenied && retry) {
-            final retryStatus = await Permission.storage.request();
-            state = retryStatus.isGranted;
-          } else {
-            state = false;
-          }
+          state = PermissionState(
+            hasPermission: audioStatus.isGranted,
+            isLoading: false,
+          );
         }
       } else {
-        state = true;
+        // Below Android 13 needs storage permission
+        final storageStatus = await Permission.storage.status;
+        if (storageStatus.isDenied) {
+          final result = await Permission.storage.request();
+          state = PermissionState(
+            hasPermission: result.isGranted,
+            isLoading: false,
+          );
+        } else {
+          state = PermissionState(
+            hasPermission: storageStatus.isGranted,
+            isLoading: false,
+          );
+        }
       }
     } catch (e) {
-      state = false;
-      print('Error requesting permissions: $e');
+      print('Permission error: $e');
+      state = const PermissionState(hasPermission: false, isLoading: false);
     }
   }
 
-  Future<bool> isAndroid13OrHigher() async {
-    if (Platform.isAndroid) {
-      final androidInfo = await DeviceInfoPlugin().androidInfo;
-      return androidInfo.version.sdkInt >= 33;
+  Future<void> requestSpecificPermission(Permission permission) async {
+    try {
+      final result = await permission.request();
+      state = PermissionState(
+        hasPermission: result.isGranted,
+        isLoading: false,
+      );
+    } catch (e) {
+      print('Specific permission request error: $e');
+      state = const PermissionState(hasPermission: false, isLoading: false);
     }
-    return false;
   }
 }

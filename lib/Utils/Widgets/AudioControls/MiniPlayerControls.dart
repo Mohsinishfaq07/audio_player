@@ -19,7 +19,7 @@ class MiniPlayerControls extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          icon: const Icon(Icons.skip_previous),
+          icon: const Icon(Icons.skip_previous, color: Colors.white, size: 25),
           onPressed: onPrevious,
         ),
         StreamBuilder<PlayerState>(
@@ -32,32 +32,35 @@ class MiniPlayerControls extends StatelessWidget {
                 processingState == ProcessingState.buffering) {
               return Container(
                 margin: const EdgeInsets.all(8.0),
-                width: 64.0,
-                height: 64.0,
+                width: 55.0,
+                height: 55.0,
                 child: const CircularProgressIndicator(),
               );
             } else if (playing != true) {
               return IconButton(
                 icon: const Icon(Icons.play_arrow, color: Colors.white),
-                iconSize: 64.0,
+                iconSize: 55.0,
                 onPressed: player.play,
               );
             } else if (processingState != ProcessingState.completed) {
               return IconButton(
                 icon: const Icon(Icons.pause, color: Colors.white),
-                iconSize: 64.0,
+                iconSize: 55.0,
                 onPressed: player.pause,
               );
             } else {
               return IconButton(
                 icon: const Icon(Icons.replay, color: Colors.white),
-                iconSize: 64.0,
+                iconSize: 55.0,
                 onPressed: () => player.seek(Duration.zero),
               );
             }
           },
         ),
-        IconButton(icon: const Icon(Icons.skip_next), onPressed: onNext),
+        IconButton(
+          icon: const Icon(Icons.skip_next, color: Colors.white, size: 25),
+          onPressed: onNext,
+        ),
       ],
     );
   }

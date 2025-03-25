@@ -45,17 +45,19 @@ class _SongsState extends ConsumerState<Songs>
 
   Future<void> checkAndRequestPermissions() async {
     await ref.read(permissionProvider.notifier).checkAndRequestPermissions();
-    if (ref.read(permissionProvider)) {
+    final permissionState = ref.read(permissionProvider);
+    if (permissionState.hasPermission) {
       await ref.read(songProvider.notifier).fetchSongs();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasPermission = ref.watch(permissionProvider);
+    final permissionState = ref.watch(permissionProvider);
     final songs = ref.watch(songProvider);
     final player = ref.read(audioPlayerProvider.notifier).player;
     final playerState = ref.watch(audioPlayerProvider);
+
     return Scaffold(
       backgroundColor: Colors.grey[250],
       appBar: PreferredSize(
@@ -126,7 +128,9 @@ class _SongsState extends ConsumerState<Songs>
                       children: [
                         Center(
                           child:
-                              !hasPermission
+                              permissionState.isLoading
+                                  ? const CircularProgressIndicator()
+                                  : !permissionState.hasPermission
                                   ? NoStoragePermission(
                                     checkAndRequestPermissions,
                                   )
@@ -134,10 +138,8 @@ class _SongsState extends ConsumerState<Songs>
                                     itemCount: songs.length,
                                     itemBuilder: (context, index) {
                                       final song = songs[index];
-
                                       return SongOptions(
                                         index: index,
-
                                         songs: songs,
                                         song: song,
                                       );
@@ -152,7 +154,6 @@ class _SongsState extends ConsumerState<Songs>
               PlaylistScreen(),
             ],
           ),
-          // Add persistent MiniPlayer at bottom of main Stack
           if (playerState.mediaItem != null)
             Positioned(
               left: 0,

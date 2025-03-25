@@ -1,4 +1,4 @@
-import 'package:audioplayer/View/Pages/AllSongs/Songs.dart';
+import 'package:audioplayer/View/Splash/SplashScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +28,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
-      child: GetMaterialApp(debugShowCheckedModeBanner: false, home: Songs()),
+      child: GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Splashscreen(),
+      ),
     );
   }
 }

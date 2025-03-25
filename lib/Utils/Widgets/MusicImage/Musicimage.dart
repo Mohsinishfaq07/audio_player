@@ -10,6 +10,7 @@ class MusicImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return QueryArtworkWidget(
+      keepOldArtwork: true,
       nullArtworkWidget: Container(
         decoration: BoxDecoration(
           color: Colors.grey.shade300,

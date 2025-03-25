@@ -37,7 +37,18 @@ class MiniPlayer extends ConsumerWidget {
       child: Container(
         width: Get.width * 1,
         height: Get.height * 0.1,
-        color: Colors.grey[850],
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              Colors.blue.shade900,
+              Colors.blue.shade800,
+              Colors.blue.shade700,
+              Colors.blue.shade600,
+            ],
+          ),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
           children: [

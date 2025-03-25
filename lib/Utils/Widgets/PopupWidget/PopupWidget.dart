@@ -2,6 +2,7 @@ import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvid
 import 'package:audioplayer/Utils/Provider/FavouritesProvider/FavProvider.dart';
 import 'package:audioplayer/Utils/Widgets/MusicImage/Musicimage.dart';
 import 'package:audioplayer/Utils/Widgets/PlaylistDialog/PlaylistDialog.dart';
+import 'package:audioplayer/View/AudioPlayer/AudioPlayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -75,8 +76,17 @@ class SongOptions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
-      onTap:
-          () => ref.read(audioPlayerProvider.notifier).loadSong(songs, index),
+      onTap: () {
+        // ref.read(audioPlayerProvider.notifier).loadSong(songs, index);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) =>
+                    AudioPlayerScreen(songs: songs, currentIndex: index),
+          ),
+        );
+      },
       leading: SizedBox(
         height: 50,
         width: 50,
@@ -89,8 +99,17 @@ class SongOptions extends ConsumerWidget {
         overflow: TextOverflow.ellipsis,
       ),
       trailing: PopupWidget(
-        onPlay:
-            () => ref.read(audioPlayerProvider.notifier).loadSong(songs, index),
+        onPlay: () {
+          ref.read(audioPlayerProvider.notifier).loadSong(songs, index);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) =>
+                      AudioPlayerScreen(songs: songs, currentIndex: index),
+            ),
+          );
+        },
         song: song,
         onAddToPlaylist:
             () => showDialog(
