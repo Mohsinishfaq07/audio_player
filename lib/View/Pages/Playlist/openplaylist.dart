@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvider.dart';
 import 'package:audioplayer/Utils/Provider/Playlistprovider/PlaylistProvider.dart';
-import 'package:audioplayer/Utils/Widgets/FloatingButton/FloatingButon.dart';
 import 'package:audioplayer/Utils/Widgets/Player%20Widgets/MiniPlayerWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -218,7 +217,6 @@ class _PlaylistScreenState extends ConsumerState<OpenPlaylist> {
                 SizedBox(height: MediaQuery.of(context).size.height * 0.08),
             ],
           ),
-          FloatingButton(playerState: playerState, ref: ref),
           // Add MiniPlayer at bottom of screen
           if (playerState.mediaItem != null)
             Positioned(

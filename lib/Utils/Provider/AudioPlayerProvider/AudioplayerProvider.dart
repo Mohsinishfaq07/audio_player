@@ -11,7 +11,6 @@ final audioPlayerProvider =
 
 class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
   final AudioPlayer _player = AudioPlayer();
-
   AudioPlayerNotifier() : super(AudioPlayerState()) {
     _player.currentIndexStream.listen((index) {
       if (index != null &&
@@ -30,10 +29,18 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
         );
       }
     });
-    _player.playerStateStream.listen((playerState) {
-      if (playerState.processingState == ProcessingState.completed &&
-          !state.shuffleModeEnabled) {
-        _player.pause();
+
+    _player.playerStateStream.listen((playerState) async {
+      if (playerState.processingState == ProcessingState.completed) {
+        if (_player.loopMode != LoopMode.off) {
+          // If loop mode is enabled, automatically restart
+          await _player.seek(Duration.zero);
+          await _player.play();
+        } else {
+          // If no loop mode, just pause at the end
+          await _player.pause();
+          await _player.seek(Duration.zero);
+        }
       }
     });
   }
@@ -63,6 +70,17 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
     } on PlayerException catch (e) {
       print("Error loading single song: $e");
     }
+  }
+
+  void clearMediaItem() {
+    state = AudioPlayerState(
+      songs: [],
+      currentIndex: 0,
+      mediaItem: null,
+      shuffleModeEnabled: false,
+      loopMode: LoopMode.off,
+    );
+    player.stop();
   }
 
   Future<void> loadPlaylist(List<SongModel> songs, int initialIndex) async {
@@ -209,19 +227,38 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
   Future<void> playNext() async {
     try {
       if (_player.audioSource is ConcatenatingAudioSource) {
-        // We're playing from a playlist
-        print('Playing next in playlist');
-        await _player.seekToNext();
+        // Playing from a playlist
+        if (_player.hasNext) {
+          print('Playing next in playlist');
+          await _player.seekToNext();
+        } else {
+          print('No next song, stopping playback');
+          await _player.stop();
+          _player.seek(Duration.zero);
+        }
       } else {
         // Regular playback
         if (!state.shuffleModeEnabled) {
           int nextIndex =
               (state.currentIndex < state.songs.length - 1)
                   ? state.currentIndex + 1
-                  : 0;
-          await loadSong(state.songs, nextIndex);
+                  : -1;
+
+          if (nextIndex != -1) {
+            await loadSong(state.songs, nextIndex);
+          } else {
+            print('No next song, stopping playback');
+            // await _player.stop();
+            // _player.seek(Duration.zero);
+          }
         } else {
-          await _player.seekToNext();
+          if (_player.hasNext) {
+            await _player.seekToNext();
+          } else {
+            print('No next song, stopping playback');
+            await _player.stop();
+            _player.seek(Duration.zero);
+          }
         }
       }
     } catch (e) {
@@ -232,19 +269,28 @@ class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
   Future<void> playPrevious() async {
     try {
       if (_player.audioSource is ConcatenatingAudioSource) {
-        // We're playing from a playlist
-        print('Playing previous in playlist');
-        await _player.seekToPrevious();
+        // Playing from a playlist
+        if (_player.hasPrevious) {
+          print('Playing previous in playlist');
+          await _player.seekToPrevious();
+        } else {
+          // print('No previous song, stopping playback');
+          // await _player.stop();
+          // _player.seek(Duration.zero);
+        }
       } else {
         // Regular playback
         if (!state.shuffleModeEnabled) {
           int prevIndex =
-              (state.currentIndex > 0)
-                  ? state.currentIndex - 1
-                  : state.songs.length - 1;
-          await loadSong(state.songs, prevIndex);
-        } else {
-          await _player.seekToPrevious();
+              (state.currentIndex > 0) ? state.currentIndex - 1 : -1;
+
+          if (prevIndex != -1) {
+            await loadSong(state.songs, prevIndex);
+          } else {
+            print('No previous song, stopping playback');
+            await _player.stop();
+            _player.seek(Duration.zero);
+          }
         }
       }
     } catch (e) {

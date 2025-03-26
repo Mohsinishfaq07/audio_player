@@ -1,7 +1,7 @@
+import 'package:audioplayer/Utils/Provider/ArtworkProvider/ArtworkProvider.dart';
 import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvider.dart';
 import 'package:audioplayer/Utils/Provider/PermissionProvider/permissionprovider.dart';
 import 'package:audioplayer/Utils/Provider/SongProvider/SongProvider.dart';
-import 'package:audioplayer/Utils/Widgets/FloatingButton/FloatingButon.dart';
 import 'package:audioplayer/Utils/Widgets/NoStorageWidget/Nostorage.dart';
 import 'package:audioplayer/Utils/Widgets/Player Widgets/MiniPlayerWidget.dart';
 import 'package:audioplayer/Utils/Widgets/PopupWidget/PopupWidget.dart';
@@ -33,7 +33,16 @@ class _SongsState extends ConsumerState<Songs>
   void dispose() {
     _tabController.dispose();
     WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
+  }
+
+  Future<void> _loadSongs() async {
+    await ref.read(songProvider.notifier).fetchSongs();
+    final songs = ref.read(songProvider);
+    if (songs.isNotEmpty) {
+      ref.read(artworkCacheProvider.notifier).preloadArtworks(songs);
+    }
   }
 
   @override
@@ -48,6 +57,7 @@ class _SongsState extends ConsumerState<Songs>
     final permissionState = ref.read(permissionProvider);
     if (permissionState.hasPermission) {
       await ref.read(songProvider.notifier).fetchSongs();
+      _loadSongs();
     }
   }
 
@@ -146,7 +156,6 @@ class _SongsState extends ConsumerState<Songs>
                                     },
                                   ),
                         ),
-                        FloatingButton(playerState: playerState, ref: ref),
                       ],
                     ),
               ),

@@ -95,6 +95,13 @@ class MiniPlayer extends ConsumerWidget {
               ref.read(audioPlayerProvider.notifier).playPrevious,
               ref.read(audioPlayerProvider.notifier).playNext,
             ),
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white, size: 25),
+              onPressed: () {
+                player.stop();
+                ref.read(audioPlayerProvider.notifier).clearMediaItem();
+              },
+            ),
           ],
         ),
       ),

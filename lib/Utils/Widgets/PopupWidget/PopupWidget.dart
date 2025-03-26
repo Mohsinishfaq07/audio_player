@@ -21,7 +21,6 @@ class PopupWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the entire favorites list for real-time updates
     final favorites = ref.watch(favoriteProvider);
     final isFavorite = favorites.any((s) => s.id == song.id);
 
@@ -76,8 +75,8 @@ class SongOptions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
-      onTap: () {
-        // ref.read(audioPlayerProvider.notifier).loadSong(songs, index);
+      onTap: () async {
+        await ref.read(audioPlayerProvider.notifier).loadSong(songs, index);
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -99,8 +98,8 @@ class SongOptions extends ConsumerWidget {
         overflow: TextOverflow.ellipsis,
       ),
       trailing: PopupWidget(
-        onPlay: () {
-          ref.read(audioPlayerProvider.notifier).loadSong(songs, index);
+        onPlay: () async {
+          await ref.read(audioPlayerProvider.notifier).loadSong(songs, index);
           Navigator.push(
             context,
             MaterialPageRoute(
