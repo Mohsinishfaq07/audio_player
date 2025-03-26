@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvider.dart';
 import 'package:audioplayer/Utils/Provider/Playlistprovider/PlaylistProvider.dart';
 import 'package:audioplayer/Utils/Widgets/Player%20Widgets/MiniPlayerWidget.dart';
+import 'package:audioplayer/View/AudioPlayer/AudioPlayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -88,9 +89,9 @@ class _PlaylistScreenState extends ConsumerState<OpenPlaylist> {
                       .read(playlistProvider.notifier)
                       .getPlaylistSongs(widget.playlist.id),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                    // if (snapshot.connectionState == ConnectionState.waiting) {
+                    //   return const Center(child: CircularProgressIndicator());
+                    // }
 
                     if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
@@ -170,6 +171,15 @@ class _PlaylistScreenState extends ConsumerState<OpenPlaylist> {
                                 child: const Icon(Icons.music_note),
                               ),
                             ),
+                            onTap: () {
+                              _playSong(songs, index);
+                              Get.to(
+                                AudioPlayerScreen(
+                                  songs: songs,
+                                  currentIndex: index,
+                                ),
+                              );
+                            },
                             title: Text(
                               song.title,
                               maxLines: 1,
@@ -189,6 +199,12 @@ class _PlaylistScreenState extends ConsumerState<OpenPlaylist> {
                                     icon: const Icon(Icons.play_arrow),
                                     onPressed: () {
                                       _playSong(songs, index);
+                                      Get.to(
+                                        AudioPlayerScreen(
+                                          songs: songs,
+                                          currentIndex: index,
+                                        ),
+                                      );
                                     },
                                   ),
                                 IconButton(
