@@ -20,6 +20,7 @@ class MusicImage extends StatelessWidget {
       ),
       controller: OnAudioQuery(),
       id: songs[index].id,
+      quality: 100,
       type: ArtworkType.AUDIO,
       artworkHeight: 50,
       artworkWidth: 50,

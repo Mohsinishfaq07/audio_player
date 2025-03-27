@@ -1,7 +1,9 @@
 import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvider.dart';
 import 'package:audioplayer/Utils/Provider/FavouritesProvider/FavProvider.dart';
+import 'package:audioplayer/Utils/Provider/Playlistprovider/PlaylistProvider.dart';
 import 'package:audioplayer/Utils/Widgets/MusicImage/Musicimage.dart';
-import 'package:audioplayer/Utils/Widgets/PlaylistDialog/PlaylistDialog.dart';
+import 'package:audioplayer/Utils/Widgets/PlaylistDialog/PlaylistSheet.dart';
+import 'package:audioplayer/Utils/Widgets/Snackbar/Snackbar.dart';
 import 'package:audioplayer/View/AudioPlayer/AudioPlayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,18 +13,22 @@ class PopupWidget extends ConsumerWidget {
   final VoidCallback onPlay;
   final SongModel song;
   final VoidCallback onAddToPlaylist;
+  final VoidCallback?
+  onAddToSinglePlaylist; // New callback for single playlist case
 
   const PopupWidget({
     super.key,
     required this.onPlay,
     required this.song,
     required this.onAddToPlaylist,
+    this.onAddToSinglePlaylist,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final favorites = ref.watch(favoriteProvider);
     final isFavorite = favorites.any((s) => s.id == song.id);
+    final playlists = ref.watch(playlistProvider);
 
     return PopupMenuButton(
       itemBuilder:
@@ -49,7 +55,17 @@ class PopupWidget extends ConsumerWidget {
               ),
             ),
             PopupMenuItem(
-              onTap: onAddToPlaylist,
+              onTap: () {
+                if (playlists.isEmpty) {
+                  onAddToPlaylist();
+                } else if (playlists.length == 1) {
+                  // Only one playlist exists - add directly
+                  onAddToSinglePlaylist?.call();
+                } else {
+                  // Multiple playlists exist - show dialog
+                  onAddToPlaylist();
+                }
+              },
               child: const ListTile(
                 leading: Icon(Icons.playlist_add),
                 title: Text('Add to Playlist'),
@@ -74,6 +90,9 @@ class SongOptions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final playlistNotifier = ref.read(playlistProvider.notifier);
+    final playlists = ref.watch(playlistProvider);
+    final audioquery = OnAudioQuery();
     return ListTile(
       onTap: () async {
         await ref.read(audioPlayerProvider.notifier).loadSong(songs, index);
@@ -110,11 +129,35 @@ class SongOptions extends ConsumerWidget {
           );
         },
         song: song,
-        onAddToPlaylist:
-            () => showDialog(
-              context: context,
-              builder: (context) => PlaylistDialog(song: song),
+        onAddToPlaylist: () {
+          showModalBottomSheet(
+            context: context,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
+            builder: (context) => PlaylistBottomSheet(song: song),
+          );
+        },
+        onAddToSinglePlaylist:
+            playlists.isEmpty
+                ? null
+                : () async {
+                  final playlist = playlists.first;
+                  final List<SongModel> songs = await audioquery
+                      .queryAudiosFrom(AudiosFromType.PLAYLIST, playlist.id);
+
+                  bool alreadyExists = songs.any((s) => s.title == song.title);
+
+                  if (alreadyExists) {
+                    showsnackbar('Add to Playlist', "Song already Exists");
+                  } else {
+                    await playlistNotifier.addToPlaylist(playlist.id, song);
+                    showsnackbar(
+                      'Add to Playlist',
+                      "Song Added to ${playlist.data}",
+                    );
+                  }
+                },
       ),
     );
   }

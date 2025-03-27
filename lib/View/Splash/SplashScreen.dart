@@ -24,7 +24,7 @@ class _SplashscreenState extends State<Splashscreen> {
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboard = prefs.getBool(ONBOARD_KEY) ?? false;
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 4));
 
     if (!mounted) return;
 

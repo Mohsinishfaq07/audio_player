@@ -1,8 +1,10 @@
 import 'package:audioplayer/Utils/Provider/ArtworkProvider/ArtworkProvider.dart';
 import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvider.dart';
 import 'package:audioplayer/Utils/Provider/FavouritesProvider/FavProvider.dart';
+import 'package:audioplayer/Utils/Provider/Playlistprovider/PlaylistProvider.dart';
 import 'package:audioplayer/Utils/Widgets/AudioControls/AudioControls.dart';
-import 'package:audioplayer/Utils/Widgets/PlaylistDialog/PlaylistDialog.dart';
+import 'package:audioplayer/Utils/Widgets/PlaylistDialog/PlaylistSheet.dart';
+import 'package:audioplayer/Utils/Widgets/Snackbar/Snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,13 +40,19 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
 
   @override
   Widget build(BuildContext context) {
+    final playlistNotifier = ref.read(playlistProvider.notifier);
+    final playlists = ref.watch(playlistProvider);
     final audioPlayerState = ref.watch(audioPlayerProvider);
     final player = ref.read(audioPlayerProvider.notifier).player;
     final favorites = ref.watch(favoriteProvider);
     final currentSong = widget.songs[audioPlayerState.currentIndex];
     final isFavorite = favorites.any((song) => song.id == currentSong.id);
-
+    final audioquery = OnAudioQuery();
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
       extendBodyBehindAppBar: true,
       resizeToAvoidBottomInset: true, // Add this line
       body: Container(
@@ -166,12 +174,59 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
                           color: Colors.white,
                           size: 30,
                         ),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder:
-                                (context) => PlaylistDialog(song: currentSong),
-                          );
+                        onPressed: () async {
+                          if (playlists.isEmpty) {
+                            showModalBottomSheet(
+                              context: context,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(16),
+                                ),
+                              ),
+                              builder:
+                                  (context) =>
+                                      PlaylistBottomSheet(song: currentSong),
+                            );
+                          } else if (playlists.length == 1) {
+                            final playlist = playlists.first;
+                            final List<SongModel> songs = await audioquery
+                                .queryAudiosFrom(
+                                  AudiosFromType.PLAYLIST,
+                                  playlist.id,
+                                );
+
+                            bool alreadyExists = songs.any(
+                              (s) => s.title == currentSong.title,
+                            );
+
+                            if (alreadyExists) {
+                              showsnackbar(
+                                'Add to Playlist',
+                                "Song already Exists",
+                              );
+                            } else {
+                              await playlistNotifier.addToPlaylist(
+                                playlist.id,
+                                currentSong,
+                              );
+                              showsnackbar(
+                                'Add to Playlist',
+                                "Song Added to ${playlist.data}",
+                              );
+                            }
+                          } else {
+                            showModalBottomSheet(
+                              context: context,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(16),
+                                ),
+                              ),
+                              builder:
+                                  (context) =>
+                                      PlaylistBottomSheet(song: currentSong),
+                            );
+                          }
                         },
                       ),
                     ],

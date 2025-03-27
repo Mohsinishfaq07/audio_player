@@ -4,11 +4,12 @@ import 'package:audioplayer/Utils/Provider/PermissionProvider/permissionprovider
 import 'package:audioplayer/Utils/Provider/SongProvider/SongProvider.dart';
 import 'package:audioplayer/Utils/Widgets/NoStorageWidget/Nostorage.dart';
 import 'package:audioplayer/Utils/Widgets/Player Widgets/MiniPlayerWidget.dart';
-import 'package:audioplayer/Utils/Widgets/PopupWidget/PopupWidget.dart';
+import 'package:audioplayer/Utils/Widgets/PopupWidget/Songoptions.dart';
 import 'package:audioplayer/View/Pages/Playlist/Playlist.dart';
 import 'package:audioplayer/View/Pages/favourite/favourite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 
 class Songs extends ConsumerStatefulWidget {
   const Songs({super.key});
@@ -67,6 +68,8 @@ class _SongsState extends ConsumerState<Songs>
     final songs = ref.watch(songProvider);
     final player = ref.read(audioPlayerProvider.notifier).player;
     final playerState = ref.watch(audioPlayerProvider);
+    final double height = Get.height;
+    final double width = Get.width;
 
     return Scaffold(
       backgroundColor: Colors.grey[250],
@@ -92,12 +95,12 @@ class _SongsState extends ConsumerState<Songs>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ImageIcon(
-                  AssetImage('assets/images/icon.png'),
-                  size: 100,
+                Icon(
+                  Icons.headphones,
+                  size: height * 0.15,
                   color: Colors.orange,
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: height * 0.02),
                 const Text(
                   "Audio Player",
                   style: TextStyle(
@@ -106,7 +109,7 @@ class _SongsState extends ConsumerState<Songs>
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: height * 0.06),
               ],
             ),
           ),

@@ -41,7 +41,7 @@ class _PlaylistScreenState extends ConsumerState<OpenPlaylist> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(Get.height * 0.22),
         child: AppBar(
-          automaticallyImplyLeading: false,
+          iconTheme: IconThemeData(color: Colors.white),
           elevation: 2,
           flexibleSpace: Container(
             decoration: BoxDecoration(
@@ -216,6 +216,11 @@ class _PlaylistScreenState extends ConsumerState<OpenPlaylist> {
                                           widget.playlist.id,
                                           song,
                                         );
+                                    player.stop();
+                                    ref
+                                        .read(audioPlayerProvider.notifier)
+                                        .clearMediaItem();
+
                                     setState(() {}); // Refresh the list
                                   },
                                 ),

@@ -40,12 +40,6 @@ class FavouriteScreen extends ConsumerWidget {
             icon: const Icon(Icons.favorite, color: Colors.red),
             onPressed: () {
               ref.read(favoriteProvider.notifier).toggleFavorite(song);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Removed ${song.title} from favorites'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
             },
           ),
           onTap: () {
