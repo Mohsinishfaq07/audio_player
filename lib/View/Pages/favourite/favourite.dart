@@ -1,8 +1,10 @@
 import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvider.dart';
 import 'package:audioplayer/Utils/Provider/FavouritesProvider/FavProvider.dart';
 import 'package:audioplayer/Utils/Widgets/MusicImage/MusicImage.dart';
+import 'package:audioplayer/View/AudioPlayer/AudioPlayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 
 class FavouriteScreen extends ConsumerWidget {
   const FavouriteScreen({super.key});
@@ -50,6 +52,9 @@ class FavouriteScreen extends ConsumerWidget {
             ref
                 .read(audioPlayerProvider.notifier)
                 .loadSong(favoriteSongs, index);
+            Get.to(
+              AudioPlayerScreen(songs: favoriteSongs, currentIndex: index),
+            );
           },
         );
       },
