@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get_navigation/get_navigation.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
 Future<void> main() async {
@@ -19,7 +20,7 @@ Future<void> main() async {
     androidNotificationChannelName: 'Audio playback',
     androidNotificationOngoing: true,
   );
-
+  MobileAds.instance.initialize();
   runApp(const MyApp());
 }
 

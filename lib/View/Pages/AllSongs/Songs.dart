@@ -1,3 +1,4 @@
+import 'package:audioplayer/Utils/Provider/AdProviders/bannerAdProvider.dart';
 import 'package:audioplayer/Utils/Provider/ArtworkProvider/ArtworkProvider.dart';
 import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvider.dart';
 import 'package:audioplayer/Utils/Provider/PermissionProvider/permissionprovider.dart';
@@ -10,6 +11,7 @@ import 'package:audioplayer/View/Pages/favourite/favourite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class Songs extends ConsumerStatefulWidget {
   const Songs({super.key});
@@ -34,7 +36,6 @@ class _SongsState extends ConsumerState<Songs>
   void dispose() {
     _tabController.dispose();
     WidgetsBinding.instance.removeObserver(this);
-
     super.dispose();
   }
 
@@ -69,7 +70,7 @@ class _SongsState extends ConsumerState<Songs>
     final player = ref.read(audioPlayerProvider.notifier).player;
     final playerState = ref.watch(audioPlayerProvider);
     final double height = Get.height;
-    final double width = Get.width;
+    final bannerAd = ref.watch(bannerAdProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey[250],
@@ -130,49 +131,65 @@ class _SongsState extends ConsumerState<Songs>
           ),
         ),
       ),
-      body: Stack(
+      body: Column(
         children: [
-          TabBarView(
-            controller: _tabController,
-            children: [
-              Builder(
-                builder:
-                    (context) => Stack(
-                      children: [
-                        Center(
-                          child:
-                              permissionState.isLoading
-                                  ? const CircularProgressIndicator()
-                                  : !permissionState.hasPermission
-                                  ? NoStoragePermission(
-                                    checkAndRequestPermissions,
-                                  )
-                                  : ListView.builder(
-                                    itemCount: songs.length,
-                                    itemBuilder: (context, index) {
-                                      final song = songs[index];
-                                      return SongOptions(
-                                        index: index,
-                                        songs: songs,
-                                        song: song,
-                                      );
-                                    },
-                                  ),
-                        ),
-                      ],
+          Expanded(
+            child: Stack(
+              children: [
+                TabBarView(
+                  controller: _tabController,
+                  children: [
+                    Builder(
+                      builder:
+                          (context) => Stack(
+                            children: [
+                              Center(
+                                child:
+                                    permissionState.isLoading
+                                        ? const CircularProgressIndicator()
+                                        : !permissionState.hasPermission
+                                        ? NoStoragePermission(
+                                          checkAndRequestPermissions,
+                                        )
+                                        : ListView.builder(
+                                          itemCount: songs.length,
+                                          itemBuilder: (context, index) {
+                                            final song = songs[index];
+                                            return SongOptions(
+                                              index: index,
+                                              songs: songs,
+                                              song: song,
+                                            );
+                                          },
+                                        ),
+                              ),
+                            ],
+                          ),
                     ),
-              ),
-              FavouriteScreen(),
-              PlaylistScreen(),
-            ],
-          ),
-          if (playerState.mediaItem != null)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: MiniPlayer(player: player),
+                    FavouriteScreen(),
+                    PlaylistScreen(),
+                  ],
+                ),
+              ],
             ),
+          ),
+          if (bannerAd != null)
+            Consumer(
+              builder: (context, ref, child) {
+                final bannerAd = ref.watch(
+                  bannerAdProvider,
+                ); // ✅ Creates a new instance
+                return Container(
+                  alignment: Alignment.center,
+                  width: bannerAd?.size.width.toDouble(),
+                  height: bannerAd?.size.height.toDouble(),
+                  child: AdWidget(
+                    ad: bannerAd!,
+                  ), // ✅ Fresh instance for AdWidget
+                );
+              },
+            ),
+          if (playerState.mediaItem != null) MiniPlayer(player: player),
         ],
       ),
     );

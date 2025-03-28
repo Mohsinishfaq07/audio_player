@@ -1,3 +1,4 @@
+import 'package:audioplayer/Utils/Provider/AdProviders/BannerAdProvider.dart';
 import 'package:audioplayer/Utils/Provider/ArtworkProvider/ArtworkProvider.dart';
 import 'package:audioplayer/Utils/Provider/AudioPlayerProvider/AudioplayerProvider.dart';
 import 'package:audioplayer/Utils/Provider/FavouritesProvider/FavProvider.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class AudioPlayerScreen extends ConsumerStatefulWidget {
@@ -244,6 +246,23 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
                 ],
                 // Add bottom padding to ensure content is visible when keyboard is shown
                 SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
+                Padding(
+                  padding: EdgeInsets.only(top: Get.height * 0.168),
+                  child: Consumer(
+                    builder: (context, watch, child) {
+                      final bannerAd = watch.watch(bannerAdProvider);
+                      if (bannerAd == null) {
+                        return SizedBox.shrink(); // Hide when ad isn't loaded
+                      }
+                      return Container(
+                        alignment: Alignment.center,
+                        width: bannerAd.size.width.toDouble(),
+                        height: bannerAd.size.height.toDouble(),
+                        child: AdWidget(ad: bannerAd),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),
