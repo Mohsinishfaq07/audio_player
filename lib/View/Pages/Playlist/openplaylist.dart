@@ -44,7 +44,7 @@ class _PlaylistScreenState extends ConsumerState<OpenPlaylist> {
     ); // ✅ Uses Playlist-Specific Ad
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(Get.height * 0.22),
+        preferredSize: Size.fromHeight(Get.height * 0.23),
         child: AppBar(
           iconTheme: IconThemeData(color: Colors.white),
           elevation: 2,
@@ -64,12 +64,12 @@ class _PlaylistScreenState extends ConsumerState<OpenPlaylist> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Gap(30),
-                ImageIcon(
-                  AssetImage('assets/images/icon.png'),
-                  size: 100,
+                Icon(
+                  Icons.headphones,
+                  size: Get.height * 0.15,
                   color: Colors.orange,
                 ),
-                const SizedBox(height: 10),
+
                 Text(
                   widget.playlist.playlist,
                   style: TextStyle(
